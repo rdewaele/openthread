@@ -262,6 +262,19 @@
 #endif
 
 /**
+ * @def OPENTHREAD_CONFIG_MAX_ROUTERS
+ *
+ * The maximum number of routers in a Thread network.
+ *
+ * @note Thread specifies this value to be 32.  Changing this value may cause interoperability issues with standard
+ *       Thread 1.1 devices.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_MAX_ROUTERS
+#define OPENTHREAD_CONFIG_MAX_ROUTERS 32
+#endif
+
+/**
  * @def OPENTHREAD_CONFIG_MAX_CHILDREN
  *
  * The maximum number of children.
@@ -528,6 +541,32 @@
 #endif
 
 /**
+ * @def OPENTHREAD_CONFIG_MESHCOP_PENDING_DATASET_MINIMUM_DELAY
+ *
+ * Minimum Delay Timer value for a Pending Operational Dataset (in ms).
+ *
+ * Thread specification defines this value as 30,000 ms. Changing from the specified value should be done for testing
+ * only.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_MESHCOP_PENDING_DATASET_MINIMUM_DELAY
+#define OPENTHREAD_CONFIG_MESHCOP_PENDING_DATASET_MINIMUM_DELAY 30000
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_MESHCOP_PENDING_DATASET_DEFAULT_DELAY
+ *
+ * Default Delay Timer value for a Pending Operational Dataset (in ms).
+ *
+ * Thread specification defines this value as 300,000 ms. Changing from the specified value should be done for testing
+ * only.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_MESHCOP_PENDING_DATASET_DEFAULT_DELAY
+#define OPENTHREAD_CONFIG_MESHCOP_PENDING_DATASET_DEFAULT_DELAY 300000
+#endif
+
+/**
  * @def OPENTHREAD_CONFIG_LOG_OUTPUT
  *
  * Selects if, and where the LOG output goes to.
@@ -764,6 +803,17 @@
 #endif
 
 /**
+ * @def OPENTHREAD_CONFIG_LOG_SRC_DST_IP_ADDRESSES
+ *
+ * If defined as 1 when IPv6 message info is logged in mesh-forwarder, the source and destination IPv6 addresses of
+ * messages are also included.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_LOG_SRC_DST_IP_ADDRESSES
+#define OPENTHREAD_CONFIG_LOG_SRC_DST_IP_ADDRESSES 1
+#endif
+
+/**
  * @def OPENTHREAD_CONFIG_PLAT_LOG_FUNCTION
  *
  * Defines the name of function/macro used for logging inside OpenThread, by default it is set to `otPlatLog()`.
@@ -820,8 +870,12 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE
+#if OPENTHREAD_RADIO
+#define OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE 512
+#else
 #define OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE 1300
 #endif
+#endif // OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE
 
 /**
  * @def OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
@@ -830,8 +884,12 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
+#if OPENTHREAD_RADIO
+#define OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE 512
+#else
 #define OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE 1300
 #endif
+#endif // OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
 
 /**
  * @def OPENTHREAD_CONFIG_NCP_SPINEL_ENCRYPTER_EXTRA_DATA_SIZE
@@ -842,6 +900,16 @@
  */
 #ifndef OPENTHREAD_CONFIG_NCP_SPINEL_ENCRYPTER_EXTRA_DATA_SIZE
 #define OPENTHREAD_CONFIG_NCP_SPINEL_ENCRYPTER_EXTRA_DATA_SIZE 0
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_NCP_SPINEL_LOG_MAX_SIZE
+ *
+ * The maximum OpenThread log string size (number of chars) supported by NCP using Spinel `StreamWrite`.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_NCP_SPINEL_LOG_MAX_SIZE
+#define OPENTHREAD_CONFIG_NCP_SPINEL_LOG_MAX_SIZE 150
 #endif
 
 /**
@@ -901,6 +969,16 @@
 #endif
 
 /**
+ * @def OPENTHREAD_CONFIG_ENABLE_PLATFORM_EUI64_CUSTOM_SOURCE
+ *
+ * Allows to define custom otPlatRadioGetIeeeEui64 function to retrieve EUI-64.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_ENABLE_PLATFORM_EUI64_CUSTOM_SOURCE
+#define OPENTHREAD_CONFIG_ENABLE_PLATFORM_EUI64_CUSTOM_SOURCE 0
+#endif
+
+/**
  * @def OPENTHREAD_CONFIG_ENABLE_AUTO_START_SUPPORT
  *
  * Define to 1 if you want to enable auto start logic.
@@ -924,23 +1002,23 @@
 #endif
 
 /**
- * @def OPENTHREAD_CONFIG_MBEDTLS_HEAP_SIZE
+ * @def OPENTHREAD_CONFIG_HEAP_SIZE
  *
- * The size of mbedTLS heap buffer when DTLS is enabled.
+ * The size of heap buffer when DTLS is enabled.
  *
  */
-#ifndef OPENTHREAD_CONFIG_MBEDTLS_HEAP_SIZE
-#define OPENTHREAD_CONFIG_MBEDTLS_HEAP_SIZE (1536 * sizeof(void *))
+#ifndef OPENTHREAD_CONFIG_HEAP_SIZE
+#define OPENTHREAD_CONFIG_HEAP_SIZE (1536 * sizeof(void *))
 #endif
 
 /**
- * @def OPENTHREAD_CONFIG_MBEDTLS_HEAP_SIZE_NO_DTLS
+ * @def OPENTHREAD_CONFIG_HEAP_SIZE_NO_DTLS
  *
- * The size of mbedTLS heap buffer when DTLS is disabled.
+ * The size of heap buffer when DTLS is disabled.
  *
  */
-#ifndef OPENTHREAD_CONFIG_MBEDTLS_HEAP_SIZE_NO_DTLS
-#define OPENTHREAD_CONFIG_MBEDTLS_HEAP_SIZE_NO_DTLS 384
+#ifndef OPENTHREAD_CONFIG_HEAP_SIZE_NO_DTLS
+#define OPENTHREAD_CONFIG_HEAP_SIZE_NO_DTLS 384
 #endif
 
 /**
@@ -1059,7 +1137,7 @@
 /**
  * @def OPENTHREAD_CONFIG_CHANNEL_MANAGER_MINIMUM_DELAY
  *
- * The minimum delay in seconds used by Channel Manager module for performing a channel change.
+ * The minimum delay (in seconds) used by Channel Manager module for performing a channel change.
  *
  * The minimum delay should preferably be longer than maximum data poll interval used by all sleepy-end-devices within
  * the Thread network.
@@ -1069,6 +1147,81 @@
  */
 #ifndef OPENTHREAD_CONFIG_CHANNEL_MANAGER_MINIMUM_DELAY
 #define OPENTHREAD_CONFIG_CHANNEL_MANAGER_MINIMUM_DELAY 120
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_CHANNEL_MANAGER_MINIMUM_MONITOR_SAMPLE_COUNT
+ *
+ * The minimum number of RSSI samples per channel by Channel Monitoring feature before the collected data can be used
+ * by the Channel Manager module to (auto) select a better channel.
+ *
+ * Applicable only if Channel Manager and Channel Monitoring features are both enabled (i.e.,
+ * `OPENTHREAD_ENABLE_CHANNEL_MANAGER` and `OPENTHREAD_ENABLE_CHANNEL_MONITOR` are set).
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_CHANNEL_MANAGER_MINIMUM_MONITOR_SAMPLE_COUNT
+#define OPENTHREAD_CONFIG_CHANNEL_MANAGER_MINIMUM_MONITOR_SAMPLE_COUNT 500
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_CHANNEL_MANAGER_THRESHOLD_TO_SKIP_FAVORED
+ *
+ * This threshold specifies the minimum occupancy rate difference between two channels for the Channel Manager to
+ * prefer an unfavored channel over the best favored one. This is used when (auto) selecting a channel based on the
+ * collected channel quality data by "channel monitor" feature.
+ *
+ * The difference is based on the `ChannelMonitor::GetChannelOccupancy()` definition which provides the average
+ * percentage of RSSI samples (within a time window) indicating that channel was busy (i.e., RSSI value higher than
+ * a threshold). Value 0 maps to 0% and 0xffff maps to 100%.
+ *
+ * Applicable only if Channel Manager feature is enabled (i.e., `OPENTHREAD_ENABLE_CHANNEL_MANAGER` is set).
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_CHANNEL_MANAGER_THRESHOLD_TO_SKIP_FAVORED
+#define OPENTHREAD_CONFIG_CHANNEL_MANAGER_THRESHOLD_TO_SKIP_FAVORED (0xffff * 7 / 100)
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_CHANNEL_MANAGER_THRESHOLD_TO_CHANGE_CHANNEL
+ *
+ * This threshold specifies the minimum occupancy rate difference required between the current channel and a newly
+ * selected channel for Channel Manager to allow channel change to the new channel.
+ *
+ * The difference is based on the `ChannelMonitor::GetChannelOccupancy()` definition which provides the average
+ * percentage of RSSI samples (within a time window) indicating that channel was busy (i.e., RSSI value higher than
+ * a threshold). Value 0 maps to 0% rate and 0xffff maps to 100%.
+ *
+ * Applicable only if Channel Manager feature is enabled (i.e., `OPENTHREAD_ENABLE_CHANNEL_MANAGER` is set).
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_CHANNEL_MANAGER_THRESHOLD_TO_CHANGE_CHANNEL
+#define OPENTHREAD_CONFIG_CHANNEL_MANAGER_THRESHOLD_TO_CHANGE_CHANNEL (0xffff * 10 / 100)
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_CHANNEL_MANAGER_DEFAULT_AUTO_SELECT_INTERVAL
+ *
+ * The default time interval (in seconds) used by Channel Manager for auto-channel-selection functionality.
+ *
+ * Applicable only if Channel Manager feature is enabled (i.e., `OPENTHREAD_ENABLE_CHANNEL_MANAGER` is set).
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_CHANNEL_MANAGER_DEFAULT_AUTO_SELECT_INTERVAL
+#define OPENTHREAD_CONFIG_CHANNEL_MANAGER_DEFAULT_AUTO_SELECT_INTERVAL (3 * 60 * 60)
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_CHANNEL_MANAGER_CCA_FAILURE_THRESHOLD
+ *
+ * Minimum CCA failure rate threshold on current channel before Channel Manager starts channel selection attempt.
+ *
+ * Value 0 maps to 0% and 0xffff maps to 100%.
+ *
+ * Applicable only if Channel Manager feature is enabled (i.e., `OPENTHREAD_ENABLE_CHANNEL_MANAGER` is set).
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_CHANNEL_MANAGER_CCA_FAILURE_THRESHOLD
+#define OPENTHREAD_CONFIG_CHANNEL_MANAGER_CCA_FAILURE_THRESHOLD (0xffff * 14 / 100)
 #endif
 
 /**
@@ -1188,6 +1341,19 @@
 #endif
 
 /**
+ * @def OPENTHREAD_CONFIG_SEND_UNICAST_ANNOUNCE_RESPONSE
+ *
+ * Define as 1 to enable sending of a unicast MLE Announce message in response to a received Announce message from
+ * a device.
+ *
+ * @note The unicast MLE announce message is sent in addition to (and after) the multicast MLE Announce.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_SEND_UNICAST_ANNOUNCE_RESPONSE
+#define OPENTHREAD_CONFIG_SEND_UNICAST_ANNOUNCE_RESPONSE 1
+#endif
+
+/**
  * @def OPENTHREAD_CONFIG_NCP_ENABLE_PEEK_POKE
  *
  * Define as 1 to enable peek/poke functionality on NCP.
@@ -1215,6 +1381,27 @@
  */
 #ifndef OPENTHREAD_CONFIG_NCP_SPINEL_RESPONSE_QUEUE_SIZE
 #define OPENTHREAD_CONFIG_NCP_SPINEL_RESPONSE_QUEUE_SIZE 15
+#endif
+
+/**
+ * @def OPENTHREAD_CONFIG_NCP_ENABLE_MCU_POWER_STATE_CONTROL
+ *
+ * Define to 1 to enable support controlling of desired power state of NCP's micro-controller.
+ *
+ * The power state specifies the desired power state of NCP's micro-controller (MCU) when the underlying platform's
+ * operating system enters idle mode (i.e., all active tasks/events are processed and the MCU can potentially enter a
+ * energy-saving power state).
+ *
+ * The power state primarily determines how the host should interact with the NCP and whether the host needs an
+ * external trigger (a "poke") before it can communicate with the NCP or not.
+ *
+ * When enabled, the platform is expected to provide `otPlatSetMcuPowerState()` and `otPlatGetMcuPowerState()`
+ * functions (please see `openthread/platform/misc.h`). Host can then control the power state using
+ * `SPINEL_PROP_MCU_POWER_STATE`.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_NCP_ENABLE_MCU_POWER_STATE_CONTROL
+#define OPENTHREAD_CONFIG_NCP_ENABLE_MCU_POWER_STATE_CONTROL 0
 #endif
 
 /**

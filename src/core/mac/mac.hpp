@@ -50,10 +50,6 @@
 
 namespace ot {
 
-namespace Mle {
-class MleRouter;
-}
-
 /**
  * @addtogroup core-mac
  *
@@ -99,6 +95,155 @@ enum
      *
      */
     kIndirectFrameMacTxAttempts = OPENTHREAD_CONFIG_MAX_TX_ATTEMPTS_INDIRECT_PER_POLL,
+};
+
+/**
+ * This class defines a channel mask.
+ *
+ * It is a wrapper class around a `uint32_t` bit vector representing a set of channels.
+ *
+ */
+class ChannelMask
+{
+public:
+    enum
+    {
+        kChannelIteratorFirst = 0xff, ///< Value to pass in `GetNextChannel()` to get the first channel in the mask.
+        kInfoStringSize       = 45,   ///< Recommended buffer size to use with `ToString()`.
+    };
+
+    /**
+     * This constructor initializes a `ChannelMask` instance.
+     *
+     */
+    ChannelMask(void)
+        : mMask(0)
+    {
+    }
+
+    /**
+     * This constructor initializes a `ChannelMask` instance with a given mask.
+     *
+     * @param[in]  aMask   A channel mask (as a `uint32_t` bit-vector mask with bit 0 (lsb) -> channel 0, and so on).
+     *
+     */
+    ChannelMask(uint32_t aMask)
+        : mMask(aMask)
+    {
+    }
+
+    /**
+     * This method clears the channel mask.
+     *
+     */
+    void Clear(void) { mMask = 0; }
+
+    /**
+     * This method gets the channel mask (as a `uint32_t` bit-vector mask with bit 0 (lsb) -> channel 0, and so on).
+     *
+     * @returns The channel mask.
+     *
+     */
+    uint32_t GetMask(void) const { return mMask; }
+
+    /**
+     * This method sets the channel mask.
+     *
+     * @param[in]  aMask   A channel mask (as a `uint32_t` bit-vector mask with bit 0 (lsb) -> channel 0, and so on).
+     *
+     */
+    void SetMask(uint32_t aMask) { mMask = aMask; }
+
+    /**
+     * This method indicates if the mask is empty.
+     *
+     * @returns TRUE if the mask is empty, FALSE otherwise.
+     *
+     */
+    bool IsEmpty(void) const { return (mMask == 0); }
+
+    /**
+     * This method indicates if the mask contains only a single channel.
+     *
+     * @returns TRUE if channel mask contains a single channel, FALSE otherwise
+     *
+     */
+    bool IsSingleChannel(void) const { return ((mMask != 0) && ((mMask & (mMask - 1)) == 0)); }
+
+    /**
+     * This method indicates if the mask contains a given channel.
+     *
+     * @param[in]  aChannel  A channel.
+     *
+     * @returns TRUE if the channel @p aChannel is included in the mask, FALSE otherwise.
+     *
+     */
+    bool ContainsChannel(uint8_t aChannel) const { return ((1U << aChannel) & mMask) != 0; }
+
+    /**
+     * This method adds a channel to the channel mask.
+     *
+     * @param[in]  aChannel  A channel
+     *
+     */
+    void AddChannel(uint8_t aChannel) { mMask |= (1U << aChannel); }
+
+    /**
+     * This method removes a channel from the channel mask.
+     *
+     * @param[in]  aChannel  A channel
+     *
+     */
+    void RemoveChannel(uint8_t aChannel) { mMask &= ~(1U << aChannel); }
+
+    /**
+     * This method updates the channel mask by intersecting it with another mask.
+     *
+     * @param[in]  aOtherMask  Another channel mask.
+     *
+     */
+    void Intersect(const ChannelMask &aOtherMask) { mMask &= aOtherMask.mMask; }
+
+    /**
+     * This method gets the next channel in the channel mask.
+     *
+     * This method can be used to iterate over all channels in the channel mask. To get the first channel (channel with
+     * lowest number) in the mask the @p aChannel should be set to `kChannelIteratorFirst`.
+     *
+     * @param[inout] aChannel        A reference to a `uint8_t`.
+     *                               On entry it should contain the previous channel or `kChannelIteratorFirst`.
+     *                               On exit it contains the next channel.
+     *
+     * @retval  OT_ERROR_NONE        Got the next channel, @p aChannel updated successfully.
+     * @retval  OT_ERROR_NOT_FOUND   No next channel in the channel mask (note: @p aChannel may be changed).
+     *
+     */
+    otError GetNextChannel(uint8_t &aChannel) const;
+
+    /**
+     * This method converts the channel mask into a human-readable NULL-terminated string.
+     *
+     * Examples of possible output:
+     *  -  empty mask      ->  "{ }"
+     *  -  all channels    ->  "{ 11-26 }"
+     *  -  single channel  ->  "{ 20 }"
+     *  -  multiple ranges ->  "{ 11, 14-17, 20-22, 24, 25 }"
+     *  -  no range        ->  "{ 14, 21, 26 }"
+     *
+     * @param[out] aBuffer  A pointer to a char buffer to output the string.
+     * @param[in]  aSize    Size of the buffer (number of bytes).
+     *
+     * @returns  A pointer to the @p aBuffer.
+     *
+     */
+    const char *ToString(char *aBuffer, uint16_t aSize) const;
+
+private:
+#if (OT_RADIO_CHANNEL_MIN >= 32) || (OT_RADIO_CHANNEL_MAX >= 32)
+#error `OT_RADIO_CHANNEL_MAX` or `OT_RADIO_CHANNEL_MIN` are larger than 32. `ChannelMask` uses 32 bit mask.
+#endif
+
+    uint32_t mMask;
 };
 
 /**
@@ -409,22 +554,65 @@ public:
     otError SetShortAddress(ShortAddress aShortAddress);
 
     /**
-     * This method returns the IEEE 802.15.4 Channel.
+     * This method returns the IEEE 802.15.4 PAN Channel.
      *
-     * @returns The IEEE 802.15.4 Channel.
+     * @returns The IEEE 802.15.4 PAN Channel.
      *
      */
-    uint8_t GetChannel(void) const { return mChannel; }
+    uint8_t GetPanChannel(void) const { return mPanChannel; }
 
     /**
-     * This method sets the IEEE 802.15.4 Channel.
+     * This method sets the IEEE 802.15.4 PAN Channel.
      *
-     * @param[in]  aChannel  The IEEE 802.15.4 Channel.
+     * @param[in]  aChannel  The IEEE 802.15.4 PAN Channel.
      *
-     * @retval OT_ERROR_NONE  Successfully set the IEEE 802.15.4 Channel.
+     * @retval OT_ERROR_NONE  Successfully set the IEEE 802.15.4 PAN Channel.
      *
      */
-    otError SetChannel(uint8_t aChannel);
+    otError SetPanChannel(uint8_t aChannel);
+
+    /**
+     * This method returns the IEEE 802.15.4 Radio Channel.
+     *
+     * @returns The IEEE 802.15.4 Radio Channel.
+     *
+     */
+    uint8_t GetRadioChannel(void) const { return mRadioChannel; }
+
+    /**
+     * This method sets the IEEE 802.15.4 Radio Channel. It can only be called
+     * after successfully calling AcquireRadioChannel().
+     *
+     * @param[in]  aChannel  The IEEE 802.15.4 Radio Channel.
+     *
+     * @retval OT_ERROR_NONE  Successfully set the IEEE 802.15.4 Radio Channel.
+     *
+     */
+    otError SetRadioChannel(uint16_t aAcquisitionId, uint8_t aChannel);
+
+    /**
+     * This method acquires external ownership of the Radio channel so that future calls to
+     * SetRadioChannel will succeed.
+     *
+     * @param[out]  aAcquisitionId  The AcquisitionId that the caller should use when
+     *                              calling SetRadioChannel().
+     *
+     * @retval OT_ERROR_NONE  Successfully acquired permission to Set the Radio Channel.
+     * @retval OT_ERROR_INVALID_STATE  Failed to acquire permission as the radio Channel
+     *                                 has already been acquired.
+     *
+     */
+    otError AcquireRadioChannel(uint16_t *aAcquisitionId);
+
+    /**
+     * This method releases external ownership of the radio Channel
+     * that was acquired with AcquireRadioChannel().  The channel
+     * will re-adopt the PAN Channel when this API is called.
+     *
+     * @retval OT_ERROR_NONE  Successfully released the IEEE 802.15.4 Radio Channel.
+     *
+     */
+    otError ReleaseRadioChannel(void);
 
     /**
      * This method returns the IEEE 802.15.4 Network Name.
@@ -641,11 +829,31 @@ public:
      */
     uint16_t GetCcaFailureRate(void) const { return mCcaSuccessRateTracker.GetFailureRate(); }
 
+    /**
+     * This method Starts/Stops the Link layer. It may only be used when the Netif Interface is down
+     *
+     * @param[in]  aEnable The requested State for the MAC layer. true - Start, false - Stop.
+     *
+     * @retval OT_ERROR_NONE   The operation succeeded or the new State equals the current State.
+     *
+     */
+    otError SetEnabled(bool aEnable);
+
+    /**
+     * This method indicates whether or not the link layer is enabled.
+     *
+     * @retval true   Link layer is enabled.
+     * @retval false  Link layer is not enabled.
+     *
+     */
+    bool IsEnabled(void) { return mEnabled; }
+
 private:
     enum
     {
         kInvalidRssiValue  = 127,
         kMaxCcaSampleCount = OPENTHREAD_CONFIG_CCA_FAILURE_RATE_AVERAGING_WINDOW,
+        kMaxAcquisitionId  = 0xffff,
 
     /**
      * Interval between RSSI samples when performing Energy Scan.
@@ -707,6 +915,10 @@ private:
     otError RadioReceive(uint8_t aChannel);
     otError RadioSleep(void);
 
+    void LogFrameRxFailure(const Frame *aFrame, otError aError) const;
+    void LogFrameTxFailure(const Frame &aFrame, otError aError) const;
+    void LogBeacon(const char *aActionText, const BeaconPayload &aBeaconPayload) const;
+
     static const char *OperationToString(Operation aOperation);
 
     Operation mOperation;
@@ -736,7 +948,9 @@ private:
     ExtAddress   mExtAddress;
     ShortAddress mShortAddress;
     PanId        mPanId;
-    uint8_t      mChannel;
+    uint8_t      mPanChannel;
+    uint8_t      mRadioChannel;
+    uint16_t     mRadioChannelAcquisitionId;
 
     otNetworkName   mNetworkName;
     otExtendedPanId mExtendedPanId;
@@ -749,11 +963,11 @@ private:
     uint8_t mCsmaAttempts;
     uint8_t mTransmitAttempts;
 
-    uint32_t mScanChannels;
-    uint16_t mScanDuration;
-    uint8_t  mScanChannel;
-    int8_t   mEnergyScanCurrentMaxRssi;
-    void *   mScanContext;
+    ChannelMask mScanChannelMask;
+    uint16_t    mScanDuration;
+    uint8_t     mScanChannel;
+    int8_t      mEnergyScanCurrentMaxRssi;
+    void *      mScanContext;
     union
     {
         ActiveScanHandler mActiveScanHandler;
@@ -775,6 +989,7 @@ private:
 
     SuccessRateTracker mCcaSuccessRateTracker;
     uint16_t           mCcaSampleCount;
+    bool               mEnabled;
 };
 
 /**

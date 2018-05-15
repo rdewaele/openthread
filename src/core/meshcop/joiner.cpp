@@ -55,7 +55,6 @@
 #if OPENTHREAD_ENABLE_JOINER
 
 using ot::Encoding::BigEndian::HostSwap16;
-using ot::Encoding::BigEndian::HostSwap64;
 
 namespace ot {
 namespace MeshCoP {
@@ -197,9 +196,11 @@ void Joiner::HandleDiscoverResult(otActiveScanResult *aResult)
     if (aResult != NULL)
     {
         JoinerRouter joinerRouter;
+        char         logString[Mac::Address::kAddressStringSize];
 
-        otLogDebgMeshCoP(GetInstance(), "HandleDiscoverResult() aResult = %llX",
-                         HostSwap64(*reinterpret_cast<uint64_t *>(&aResult->mExtAddress)));
+        otLogDebgMeshCoP(GetInstance(), "Received Discovery Response (%s)",
+                         static_cast<Mac::ExtAddress &>(aResult->mExtAddress).ToString(logString, sizeof(logString)));
+        OT_UNUSED_VARIABLE(logString);
 
         // Joining is disabled if the Steering Data is not included
         if (aResult->mSteeringData.mLength == 0)
@@ -291,7 +292,7 @@ otError Joiner::TryNextJoin()
         joinerRouter->mPriority = 0;
 
         netif.GetMac().SetPanId(joinerRouter->mPanId);
-        netif.GetMac().SetChannel(joinerRouter->mChannel);
+        netif.GetMac().SetPanChannel(joinerRouter->mChannel);
         netif.GetIp6Filter().AddUnsecurePort(netif.GetCoapSecure().GetPort());
 
         messageInfo.GetPeerAddr().mFields.m16[0] = HostSwap16(0xfe80);

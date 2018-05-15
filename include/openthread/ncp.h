@@ -32,8 +32,8 @@
  *  This file defines the top-level functions for the OpenThread NCP module.
  */
 
-#ifndef NCP_H_
-#define NCP_H_
+#ifndef OPENTHREAD_NCP_H_
+#define OPENTHREAD_NCP_H_
 
 #include <stdarg.h>
 #include <openthread/types.h>
@@ -83,6 +83,16 @@ void otNcpInit(otInstance *aInstance);
  * @retval OT_ERROR_INVALID_ARGS The given aStreamId was invalid.
  */
 otError otNcpStreamWrite(int aStreamId, const uint8_t *aDataPtr, int aDataLen);
+
+/**
+ * Writes OpenThread Log using `otNcpStreamWrite`.
+ *
+ * @param[in]  aLogLevel   The log level.
+ * @param[in]  aLogRegion  The log region.
+ * @param[in]  aFormat     A pointer to the format string.
+ * @param[in]  aArgs       va_list matching aFormat.
+ */
+void otNcpPlatLogv(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, va_list aArgs);
 
 //-----------------------------------------------------------------------------------------
 // Peek/Poke memory access control delegates
@@ -203,16 +213,6 @@ void otNcpHandleDidReceiveNewLegacyUlaPrefix(const uint8_t *aUlaPrefix);
 void otNcpRegisterLegacyHandlers(const otNcpLegacyHandlers *aHandlers);
 
 /**
- * Callback to write the OpenThread Log to the NCP Spinel Tunnel.
- *
- * @param[in]  aLogLevel   The log level.
- * @param[in]  aLogRegion  The log region.
- * @param[in]  aFormat     A pointer to the format string.
- * @param[in]  aArgs       va_list matching aFormat.
- */
-void otNcpPlatLogv(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, va_list aArgs);
-
-/**
  * @}
  *
  */
@@ -221,4 +221,4 @@ void otNcpPlatLogv(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFo
 } // extern "C"
 #endif
 
-#endif
+#endif // OPENTHREAD_NCP_H_
